@@ -1,0 +1,29 @@
+type Error = variant {
+  InsertionFailed : text;
+  NotFound : record { msg : text };
+  ValidationError : text;
+};
+type HealthRecord = record {
+  id : nat64;
+  patient_name : text;
+  updated_at : opt nat64;
+  treatment : text;
+  created_at : nat64;
+  diagnosis : text;
+  symptoms : text;
+};
+type HealthRecordPayload = record {
+  patient_name : text;
+  treatment : text;
+  diagnosis : text;
+  symptoms : text;
+};
+type Result = variant { Ok : HealthRecord; Err : Error };
+service : {
+  add_health_record : (HealthRecordPayload) -> (Result);
+  delete_health_record : (nat64) -> (Result);
+  get_health_record : (nat64) -> (Result) query;
+  search_by_diagnosis : (text) -> (vec HealthRecord) query;
+  search_by_symptom : (text) -> (vec HealthRecord) query;
+  update_health_record : (nat64, HealthRecordPayload) -> (Result);
+}
