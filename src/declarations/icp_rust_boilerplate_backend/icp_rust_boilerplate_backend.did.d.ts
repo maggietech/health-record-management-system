@@ -2,8 +2,7 @@ import type { Principal } from '@dfinity/principal';
 import type { ActorMethod } from '@dfinity/agent';
 import type { IDL } from '@dfinity/candid';
 
-export type Error = { 'InsertionFailed' : string } |
-  { 'NotFound' : { 'msg' : string } } |
+export type Error = { 'NotFound' : { 'msg' : string } } |
   { 'ValidationError' : string };
 export interface HealthRecord {
   'id' : bigint,
@@ -23,7 +22,7 @@ export interface HealthRecordPayload {
 export type Result = { 'Ok' : HealthRecord } |
   { 'Err' : Error };
 export interface _SERVICE {
-  'add_health_record' : ActorMethod<[HealthRecordPayload], Result>,
+  'add_health_record' : ActorMethod<[HealthRecordPayload], [] | [HealthRecord]>,
   'delete_health_record' : ActorMethod<[bigint], Result>,
   'get_health_record' : ActorMethod<[bigint], Result>,
   'search_by_diagnosis' : ActorMethod<[string], Array<HealthRecord>>,

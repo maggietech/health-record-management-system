@@ -15,13 +15,16 @@ export const idlFactory = ({ IDL }) => {
     'symptoms' : IDL.Text,
   });
   const Error = IDL.Variant({
-    'InsertionFailed' : IDL.Text,
     'NotFound' : IDL.Record({ 'msg' : IDL.Text }),
     'ValidationError' : IDL.Text,
   });
   const Result = IDL.Variant({ 'Ok' : HealthRecord, 'Err' : Error });
   return IDL.Service({
-    'add_health_record' : IDL.Func([HealthRecordPayload], [Result], []),
+    'add_health_record' : IDL.Func(
+        [HealthRecordPayload],
+        [IDL.Opt(HealthRecord)],
+        [],
+      ),
     'delete_health_record' : IDL.Func([IDL.Nat64], [Result], []),
     'get_health_record' : IDL.Func([IDL.Nat64], [Result], ['query']),
     'search_by_diagnosis' : IDL.Func(

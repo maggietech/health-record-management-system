@@ -105,19 +105,19 @@ fn search_by_diagnosis(diagnosis: String) -> Vec<HealthRecord> {
 }
 
 #[ic_cdk::update]
-fn add_health_record(record: HealthRecordPayload) -> Result<HealthRecord, Error> {
+fn add_health_record(record: HealthRecordPayload) -> Option<HealthRecord> {
     // Perform data validation
     if record.patient_name.is_empty() {
-        return Err(Error::ValidationError("Patient name cannot be empty".to_string()));
+        return None;
     }
     if record.symptoms.is_empty() {
-        return Err(Error::ValidationError("Symptoms cannot be empty".to_string()));
+        return None;
     }
     if record.diagnosis.is_empty() {
-        return Err(Error::ValidationError("Diagnosis cannot be empty".to_string()));
+        return None;
     }
     if record.treatment.is_empty() {
-        return Err(Error::ValidationError("Treatment cannot be empty".to_string()));
+        return None;
     }
     
     let id = ID_COUNTER
@@ -136,12 +136,12 @@ fn add_health_record(record: HealthRecordPayload) -> Result<HealthRecord, Error>
         updated_at: None,
     };
     // Insert record into STORAGE
-    do_insert(&record)?;
+    do_insert(&record);
     // Update indexes
     update_indexes(&record);
     // Log the event
     log_event("add_health_record", id);
-    Ok(record)
+    Some(record)
 }
 
 #[ic_cdk::update]
@@ -167,7 +167,7 @@ fn update_health_record(id: u64, payload: HealthRecordPayload) -> Result<HealthR
             record.diagnosis = payload.diagnosis;
             record.treatment = payload.treatment;
             record.updated_at = Some(time());
-            do_insert(&record)?;
+            do_insert(&record);
             // Log the event
             log_event("update_health_record", id);
             Ok(record)
@@ -181,14 +181,8 @@ fn update_health_record(id: u64, payload: HealthRecordPayload) -> Result<HealthR
     }
 }
 
-fn do_insert(record: &HealthRecord) -> Result<(), Error> {
-    STORAGE.with(|service| {
-        service
-            .borrow_mut()
-            .insert(record.id, record.clone())
-            .map(|_| ())
-            .ok_or(Error::InsertionFailed("Failed to insert health record".to_string()))
-    })
+fn do_insert(record: &HealthRecord) {
+    STORAGE.with(|service| service.borrow_mut().insert(record.id, record.clone()));
 }
 
 #[ic_cdk::update]
@@ -212,7 +206,6 @@ fn delete_health_record(id: u64) -> Result<HealthRecord, Error> {
 enum Error {
     NotFound { msg: String },
     ValidationError(String),
-    InsertionFailed(String),
 }
 
 fn _get_health_record(id: &u64) -> Option<HealthRecord> {

@@ -1,5 +1,4 @@
 type Error = variant {
-  InsertionFailed : text;
   NotFound : record { msg : text };
   ValidationError : text;
 };
@@ -20,7 +19,7 @@ type HealthRecordPayload = record {
 };
 type Result = variant { Ok : HealthRecord; Err : Error };
 service : {
-  add_health_record : (HealthRecordPayload) -> (Result);
+  add_health_record : (HealthRecordPayload) -> (opt HealthRecord);
   delete_health_record : (nat64) -> (Result);
   get_health_record : (nat64) -> (Result) query;
   search_by_diagnosis : (text) -> (vec HealthRecord) query;
