@@ -12,8 +12,8 @@ type IdCell = Cell<u64, Memory>;
 
 // Define HashMaps for indexing
 thread_local! {
-    static SYMPTOMS_INDEX: RefCell<HashMap<String, Vec<u64>>> = RefCell::new(HashMap::new());
-    static DIAGNOSIS_INDEX: RefCell<HashMap<String, Vec<u64>>> = RefCell::new(HashMap::new());
+    static SYMPTOMS_INDEX: RefCell<HashMap<String, HashSet<u64>>> = RefCell::new(HashMap::new());
+    static DIAGNOSIS_INDEX: RefCell<HashMap<String, HashSet<u64>>> = RefCell::new(HashMap::new());
 }
 
 #[derive(candid::CandidType, Clone, Serialize, Deserialize, Default)]
@@ -213,20 +213,15 @@ fn _get_health_record(id: &u64) -> Option<HealthRecord> {
 }
 
 fn update_indexes(record: &HealthRecord) {
-    SYMPTOMS_INDEX.with(|index| {
-        let mut index_map = index.borrow_mut();
-        for symptom in record.symptoms.split(',') {
-            let ids = index_map.entry(symptom.to_string()).or_insert_with(Vec::new);
-            ids.push(record.id);
-        }
-    });
+    update_index(&SYMPTOMS_INDEX, &record.symptoms, record.id);
+    update_index(&DIAGNOSIS_INDEX, &record.diagnosis, record.id);
+}
 
-    DIAGNOSIS_INDEX.with(|index| {
-        let mut index_map = index.borrow_mut();
-        for diagnosis in record.diagnosis.split(',') {
-            let ids = index_map.entry(diagnosis.to_string()).or_insert_with(Vec::new);
-            ids.push(record.id);
-        }
+fn update_index(index: &RefCell<HashMap<String, HashSet<u64>>>, key: &str, id: u64) {
+    index.with(|idx| {
+        let mut index_map = idx.borrow_mut();
+        let ids = index_map.entry(key.to_string()).or_insert_with(HashSet::new);
+        ids.insert(id);
     });
 }
 
